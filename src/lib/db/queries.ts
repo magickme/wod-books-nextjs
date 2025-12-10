@@ -23,6 +23,8 @@ export async function getAllBooks() {
         name: productLines.name,
         setting: productLines.setting,
         abbreviation: productLines.abbreviation,
+        gameLine: productLines.gameLine,
+        world: productLines.world,
       },
       edition: {
         editionId: editions.editionId,
@@ -123,4 +125,26 @@ export async function getPublicationYears() {
     .orderBy(desc(books.publicationYear));
 
   return result.map((r) => r.year).filter((y): y is number => y !== null);
+}
+
+// Get stats by world (oWoD vs CoD)
+export async function getStatsByWorld() {
+  const stats = await db
+    .select({
+      world: productLines.world,
+      totalBooks: count(books.bookId),
+      collectedBooks: sql<number>`SUM(CASE WHEN ${books.collected} = true THEN 1 ELSE 0 END)`,
+    })
+    .from(productLines)
+    .leftJoin(books, eq(books.productLineId, productLines.productLineId))
+    .groupBy(productLines.world)
+    .orderBy(asc(productLines.world));
+
+  return stats.map((stat) => ({
+    ...stat,
+    percentage:
+      stat.totalBooks > 0
+        ? Math.round((Number(stat.collectedBooks) / stat.totalBooks) * 100)
+        : 0,
+  }));
 }

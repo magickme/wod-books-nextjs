@@ -6,9 +6,11 @@ import {
   getPublicationYears,
   getCompletionStats,
   getOverallStats,
+  getStatsByWorld,
 } from '@/lib/db/queries';
 import BookTable from '@/components/books/BookTable';
 import CompletionSidebar from '@/components/collections/CompletionSidebar';
+import WorldTabs from '@/components/books/WorldTabs';
 
 export const dynamic = 'force-dynamic'; // Disable caching for real-time updates
 
@@ -20,7 +22,7 @@ export default async function BooksPage({
   const params = await searchParams;
 
   // Parallel data fetching (all requests fire simultaneously)
-  const [books, productLines, editions, years, completionStats, overallStats] =
+  const [books, productLines, editions, years, completionStats, overallStats, worldStats] =
     await Promise.all([
       getAllBooks(),
       getProductLines(),
@@ -28,6 +30,7 @@ export default async function BooksPage({
       getPublicationYears(),
       getCompletionStats(),
       getOverallStats(),
+      getStatsByWorld(),
     ]);
 
   return (
@@ -63,13 +66,14 @@ export default async function BooksPage({
               editions={editions}
               years={years}
               initialView={params.view || 'table'}
+              worldStats={worldStats}
             />
           </Suspense>
         </div>
 
         {/* Completion sidebar */}
         <aside className="w-80 sticky top-8 h-fit">
-          <CompletionSidebar stats={completionStats} />
+          <CompletionSidebar stats={completionStats} worldStats={worldStats} />
         </aside>
       </div>
     </div>

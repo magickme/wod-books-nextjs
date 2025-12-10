@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { OwnershipToggle } from './OwnershipToggle';
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle';
+import WorldTabs, { WorldFilter } from './WorldTabs';
 import type { BookWithRelations } from '@/lib/db/schema';
 
 interface BookTableProps {
@@ -13,6 +14,12 @@ interface BookTableProps {
   editions: any[];
   years: number[];
   initialView?: string;
+  worldStats?: Array<{
+    world: string | null;
+    totalBooks: number;
+    collectedBooks: number;
+    percentage: number;
+  }>;
 }
 
 type SortKey = 'title' | 'publicationYear' | 'wwCode' | 'collected';
@@ -23,11 +30,13 @@ export default function BookTable({
   editions,
   years,
   initialView = 'table',
+  worldStats,
 }: BookTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterProductLine, setFilterProductLine] = useState('');
   const [filterEdition, setFilterEdition] = useState('');
   const [filterCollected, setFilterCollected] = useState<'all' | 'collected' | 'uncollected'>('all');
+  const [worldFilter, setWorldFilter] = useState<WorldFilter>('all');
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: 'asc' | 'desc';
@@ -39,6 +48,13 @@ export default function BookTable({
   // Client-side filtering and sorting
   const filteredAndSortedBooks = useMemo(() => {
     let result = [...books];
+
+    // Apply world filter first
+    if (worldFilter !== 'all') {
+      result = result.filter(
+        (book) => book.productLine?.world === worldFilter
+      );
+    }
 
     // Apply search filter
     if (searchTerm) {
@@ -85,7 +101,7 @@ export default function BookTable({
     });
 
     return result;
-  }, [books, searchTerm, filterProductLine, filterEdition, filterCollected, sortConfig]);
+  }, [books, searchTerm, filterProductLine, filterEdition, filterCollected, worldFilter, sortConfig]);
 
   // Sort handler
   const handleSort = (key: SortKey) => {
@@ -102,6 +118,9 @@ export default function BookTable({
 
   return (
     <div className="space-y-4">
+      {/* World Tabs */}
+      <WorldTabs activeTab={worldFilter} onTabChange={setWorldFilter} stats={worldStats} />
+
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-card rounded-lg border">
         <div>

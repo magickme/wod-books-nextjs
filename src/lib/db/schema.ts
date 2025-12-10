@@ -15,6 +15,8 @@ export const productLines = pgTable('product_lines', {
   name: varchar('name', { length: 255 }).notNull(),
   setting: varchar('setting', { length: 255 }),
   abbreviation: varchar('abbreviation', { length: 50 }),
+  gameLine: varchar('game_line', { length: 100 }),
+  world: varchar('world', { length: 20 }), // 'oWoD' or 'CoD'
 });
 
 // Editions table
