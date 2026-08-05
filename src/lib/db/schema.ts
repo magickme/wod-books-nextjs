@@ -42,7 +42,7 @@ export const books = pgTable('books', {
   pod: boolean('pod').default(false),
   collected: boolean('collected').default(false), // USER TOGGLE FIELD (physical ownership)
   // PDF library linkage - INDEPENDENT of `collected`. A local PDF is not ownership.
-  hasPdf: boolean('has_pdf').default(false),
+  hasPdf: boolean('has_pdf').notNull().default(false),
   pdfPath: text('pdf_path'),
   pdfMatchConfidence: varchar('pdf_match_confidence', { length: 10 }),
   seriesName: varchar('series_name', { length: 255 }),
