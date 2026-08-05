@@ -35,7 +35,9 @@ yarn-error.log*
 next-env.d.ts
 
 # drizzle
-# Migrations MUST be committed - they are the only reproducible record of the
-# schema. Ignoring them is how has_pdf/pdf_path shipped as a hand-applied
-# ALTER TABLE that existed on exactly one machine.
-drizzle/meta/
+# Migrations AND drizzle/meta/ MUST be committed. The migrations are the only
+# reproducible record of the schema (ignoring them is how has_pdf/pdf_path
+# shipped as a hand-applied ALTER TABLE that existed on exactly one machine),
+# and meta/ holds the snapshot that makes `drizzle-kit generate` incremental --
+# without it, generate re-emits a full CREATE TABLE baseline every time.
+# Nothing under drizzle/ is ignored.
