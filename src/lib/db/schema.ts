@@ -5,6 +5,7 @@ import {
   integer,
   smallint,
   boolean,
+  text,
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
@@ -39,7 +40,11 @@ export const books = pgTable('books', {
   pageCount: smallint('page_count'),
   retail: boolean('retail').default(false),
   pod: boolean('pod').default(false),
-  collected: boolean('collected').default(false), // USER TOGGLE FIELD
+  collected: boolean('collected').default(false), // USER TOGGLE FIELD (physical ownership)
+  // PDF library linkage - INDEPENDENT of `collected`. A local PDF is not ownership.
+  hasPdf: boolean('has_pdf').default(false),
+  pdfPath: text('pdf_path'),
+  pdfMatchConfidence: varchar('pdf_match_confidence', { length: 10 }),
   seriesName: varchar('series_name', { length: 255 }),
   dataSource: varchar('data_source', { length: 100 }),
   dataConfidence: varchar('data_confidence', { length: 50 }),

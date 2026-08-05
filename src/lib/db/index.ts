@@ -11,7 +11,9 @@ const pool = new Pool({
   password: process.env.DATABASE_PASSWORD,
   max: 20, // Maximum pool size
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  // 2s was too tight: a cold Turbopack start plus a cold pool intermittently
+  // exceeded it and rendered a 500 on first paint.
+  connectionTimeoutMillis: 10000,
 });
 
 // Drizzle instance with schema

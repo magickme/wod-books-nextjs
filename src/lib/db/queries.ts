@@ -14,10 +14,18 @@ export async function getAllBooks() {
       isbn13: books.isbn13,
       pageCount: books.pageCount,
       collected: books.collected,
+      hasPdf: books.hasPdf,
+      pdfPath: books.pdfPath,
       retail: books.retail,
       pod: books.pod,
       seriesName: books.seriesName,
       dataConfidence: books.dataConfidence,
+      authors: sql<string | null>`(
+        SELECT string_agg(a.name, ', ' ORDER BY a.name)
+        FROM book_authors ba
+        JOIN authors a ON a.author_id = ba.author_id
+        WHERE ba.book_id = ${books.bookId}
+      )`,
       productLine: {
         productLineId: productLines.productLineId,
         name: productLines.name,
@@ -57,12 +65,14 @@ export async function getCompletionStats() {
     .select({
       productLineId: productLines.productLineId,
       productLineName: productLines.name,
+      gameLine: productLines.gameLine,
+      world: productLines.world,
       totalBooks: count(books.bookId),
       collectedBooks: sql<number>`SUM(CASE WHEN ${books.collected} = true THEN 1 ELSE 0 END)`,
     })
     .from(productLines)
     .leftJoin(books, eq(books.productLineId, productLines.productLineId))
-    .groupBy(productLines.productLineId, productLines.name)
+    .groupBy(productLines.productLineId, productLines.name, productLines.gameLine, productLines.world)
     .orderBy(asc(productLines.name));
 
   // Calculate percentages
@@ -101,6 +111,8 @@ export async function getProductLines() {
     .select({
       productLineId: productLines.productLineId,
       name: productLines.name,
+      gameLine: productLines.gameLine,
+      world: productLines.world,
       setting: productLines.setting,
       abbreviation: productLines.abbreviation,
       bookCount: count(books.bookId),
@@ -108,7 +120,7 @@ export async function getProductLines() {
     .from(productLines)
     .leftJoin(books, eq(books.productLineId, productLines.productLineId))
     .groupBy(productLines.productLineId)
-    .orderBy(asc(productLines.name));
+    .orderBy(asc(productLines.gameLine));
 }
 
 // Get all editions
@@ -126,6 +138,11 @@ export async function getPublicationYears() {
 
   return result.map((r) => r.year).filter((y): y is number => y !== null);
 }
+
+export type BookRow = Awaited<ReturnType<typeof getAllBooks>>[number];
+export type ProductLineRow = Awaited<ReturnType<typeof getProductLines>>[number];
+export type EditionRow = Awaited<ReturnType<typeof getEditions>>[number];
+export type CompletionStatRow = Awaited<ReturnType<typeof getCompletionStats>>[number];
 
 // Get stats by world (oWoD vs CoD)
 export async function getStatsByWorld() {
@@ -148,3 +165,5 @@ export async function getStatsByWorld() {
         : 0,
   }));
 }
+
+export type WorldStatRow = Awaited<ReturnType<typeof getStatsByWorld>>[number];
